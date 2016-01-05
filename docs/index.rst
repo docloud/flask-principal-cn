@@ -1,59 +1,47 @@
-
 Flask Principal
 ===============
 
 *"I am that I am"*
 
 
-Introduction
-------------
 
-Flask-Principal provides a very loose framework to tie in providers of two
-types of service, often located in different parts of a web application:
+简介
+----
 
-    1. Authentication providers
-    2. User information providers
+Flask-Principal 提供一个极其松散的框架用于绑定两种类型的服务到 ``provider`` 上，通常设置在一个Web应用的不同部分上:
 
-For example, an authentication provider may be oauth, using Flask-OAuth and
-the user information may be stored in a relational database. Looseness of
-the framework is provided by using signals as the interface.
+    1. 认证 providers
+    2. 用户信息 providers
 
-The major components are the Identity, Needs, Permission, and the IdentityContext.
 
-    1. The Identity represents the user, and is stored/loaded from various
-       locations (eg session) for each request. The Identity is the user's
-       avatar to the system. It contains the access rights that the user has.
-    
-    2. A Need is the smallest grain of access control, and represents a specific
-       parameter for the situation. For example "has the admin role", "can edit
-       blog posts".
-    
-       Needs are any tuple, or probably could be object you like, but a tuple
-       fits perfectly. The predesigned Need types (for saving your typing) are
-       either pairs of (method, value) where method is used to specify
-       common things such as `"role"`, `"user"`, etc. And the value is the
-       value. An example of such is `('role', 'admin')`. Which would be a
-       Need for a admin role. Or Triples for use-cases such as "The permission
-       to edit a particular instance of an object or row", which might be represented
-       as the triple `('article', 'edit', 46)`, where 46 is the key/ID for that
-       row/object.
-       
-       Essentially, how and what Needs are is very much down to the user, and is
-       designed loosely so that any effect can be achieved by using custom
-       instances as Needs.
+举个例子，一个认证 provider 可能是 OAuth，使用 Flask-OAuth，并且这个用户信息也许被存储在一个关系型数据库中。这个框架的松藕合性是以信号作为接口来实现的.
 
-       Whilst a Need is a permission to access a resource, an Identity should
-       provide a set of Needs that it has access to.
+主要的组件包括身份(Identity)，需求(Needs)，权限(Permission)，和身份上下文(IdentityContext)。
 
-    3. A Permission is a set of requirements, any of which should be
-       present for access to a resource.
-       
-    4. An IdentityContext is the context of a certain identity against a certain
-       Permission. It can be used as a context manager, or a decorator.
 
+    1. Identity 代表用户, 对于每个请求，用户信息从多个位置被存储/加载（比如session中），
+       Identity是用户在系统中的标志，它包含用户拥有的访问权限。
+
+    2. Need 是访问控制的最小粒度，并代表特殊的操作权限。 
+       如 “管理员角色”，“可以编辑博客帖子”。
+
+       Needs 可以是任何元组, 或者是任何你喜欢的任何对象, 但元组尤其适合。
+       预设的 Need 类型 (for saving your typing) 是一对任意的 (method, value) 元组。
+       其中，method是用于指定常用事物，例如 `"role"`, `"user"`, 等等。
+       value是其中的值。比如 `('role', 'admin')` 这种。一个管理员角色将是一个Need。
+       或者通过三个元素来表示， 例如"编辑对象或者行的特定实例权限", 可能会被表示成
+       三元组 `('article', 'edit', 46)`, 其中，46是该行/对象的主键/ID。
+
+       从本质上说，Needs 是如此贴近用户的，如此松散的设计以至于任何效果
+       可以通过将自定义实例作为 Needs 使用来实现。
+
+       同时一个 Need 是获取一种资源的一个权限, 一个 Identity 应提供可以访问的 Needs 集合.
+
+    3. Permission用一个set表示，包含了对资源的访问控制。
+
+    4. IdentityContext 是针对某一特定身份和某一特定权限的上下文环境，可以作为 context manager 或者 decorator 使用。
 
 .. graphviz::
-
 
     digraph g {
         rankdir="LR" ;
@@ -71,21 +59,17 @@ The major components are the Identity, Needs, Permission, and the IdentityContex
 
     }
 
+链接
+----
 
-
-Links
------
-
-* `documentation <http://packages.python.org/Flask-Principal/>`_
-* `source <http://github.com/mattupstate/flask-principal>`_
+* `文档 <http://packages.python.org/Flask-Principal/>`_
+* `源码 <http://github.com/mattupstate/flask-principal>`_
 * :doc:`changelog </changelog>`
 
-Protecting access to resources
-------------------------------
+保护对资源的访问
+----------------
 
-For users of Flask-Principal (not authentication providers), access
-restriction is easy to define as both a decorator and a context manager. A
-simple quickstart example is presented with commenting::
+对于 Flask-Principal 的用户(不是认证的 providers)，访问控制很容易地同时定义为一个 ``decorator`` 和一个 ``context manager`` 。 这里有一个带注释的简单快速入门示例::
 
     from flask import Flask, Response
     from flask.ext.principal import Principal, Permission, RoleNeed
@@ -110,15 +94,10 @@ simple quickstart example is presented with commenting::
         with admin_permission.require():
             return Response('Only if you are admin')
 
-Authentication providers
-------------------------
+认证 providers
+--------------
 
-Authentication providers should use the `identity-changed` signal to indicate
-that a request has been authenticated. For example, the following code is a
-hypothetical example of how one might combine the popular 
-`Flask-Login <http://packages.python.org/Flask-Login/>`_  extension with 
-Flask-Principal::
-
+认证 providers 应该使用 `identity-changed` 信号来表明这个请求已经被认证. 举个例子, 下面的代码是一个说明如何将 ``Flask-Principal`` 与一个常用的扩展 `Flask-Login <http://packages.python.org/Flask-Login/>`_ 相结合的模拟示例::
 
     from flask import Flask, current_app, request, session
     from flask.ext.login import LoginManager, login_user, logout_user, \
@@ -151,7 +130,7 @@ Flask-Principal::
         if form.validate_on_submit():
             # Retrieve the user from the hypothetical datastore
             user = datastore.find_user(email=form.email.data)
-            
+
             # Compare passwords (use password hashing production)
             if form.password.data == user.password:
                 # Keep the user info in the session using Flask-Login
@@ -162,7 +141,7 @@ Flask-Principal::
                                       identity=Identity(user.id))
 
                 return redirect(request.args.get('next') or '/')
-        
+
         return render_template('login.html', form=form)
 
     @app.route('/logout')
@@ -181,15 +160,10 @@ Flask-Principal::
 
         return redirect(request.args.get('next') or '/')
 
+用户信息 providers
+------------------
 
-User Information providers
---------------------------
-
-User information providers should connect to the `identity-loaded` signal to
-add any additional information to the Identity instance such as roles. The 
-following is another hypothetical example using Flask-Login and could be 
-combined with the previous example. It shows how one might use a role based
-permission scheme::
+用户信息 providers 应该连接到 `identity-loaded` 信号来添加一切附加信息到 Identity 实例、比如 roles. 下面是另一个使用 Flask-Login 的假设示例, 并且能和上一个例子相结合. 它表现了应该如何使用一个基于角色的权限表::
 
     from flask.ext.login import current_user
     from flask.ext.principal import identity_loaded, RoleNeed, UserNeed
@@ -209,14 +183,12 @@ permission scheme::
             for role in current_user.roles:
                 identity.provides.add(RoleNeed(role.name))
 
+粗粒度的权限保护
+----------------
 
-Granular Resource Protection
-----------------------------
+现在让我们说，举个例子，你只想让博客帖子的作者编辑文章。这个可以通过创建必需的 `Need` 和
 
-Now lets say, for example, you only want the author of a blog post to be able to
-edit said article. This can be achieved by creating the necessary `Need` and 
-`Permission` objects, and adding more logic into the `identity_loaded` signal 
-handler. For example::
+`Permission` 对象来实现，并且添加更多逻辑到 `identity_loaded` 信号函数上，例子::
 
     from collections import namedtuple
     from functools import partial
@@ -254,9 +226,7 @@ handler. For example::
             for post in current_user.posts:
                 identity.provides.add(EditBlogPostNeed(unicode(post.id)))
 
-The next step will be to protect the endpoint that allows a user to edit an 
-article. This is done by creating a permission object on the fly using the ID 
-of the resource, in this case the blog post::
+下一步是保护这个 endpoint 允许某个用户编辑一篇文章。这是通过使用资源ID即时创建权限(Permission)对象来进行的 ，在这个博客文章例子中::
 
     @app.route('/posts/<post_id>', methods=['PUT', 'PATCH'])
     def edit_post(post_id):
@@ -268,18 +238,14 @@ of the resource, in this case the blog post::
 
         abort(403)  # HTTP Forbidden
 
-
 API
 ===
-
-
 
 Starting the extension
 ----------------------
 
 .. autoclass:: flask_principal.Principal
     :members:
-
 
 Main Types
 ----------
@@ -296,8 +262,6 @@ Main Types
 .. autoclass:: flask_principal.IdentityContext
     :members:
 
-
-
 Predefined Need Types
 ---------------------
 
@@ -309,9 +273,8 @@ Predefined Need Types
 
 .. autoclass:: flask_principal.ItemNeed
 
-
 Signals
-----------------
+-------
 
 .. data:: identity_changed
 
@@ -324,12 +287,15 @@ Signals
 .. _Flask documentation on signals: http://flask.pocoo.org/docs/signals/
 
 
+
 Changelog
 =========
+
 .. toctree::
    :maxdepth: 2
 
    changelog
+
 
 
 Indices and tables
@@ -338,4 +304,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
